@@ -7,6 +7,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PathMeasure;
+import android.os.Handler;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.animation.LinearInterpolator;
@@ -15,7 +16,7 @@ import android.view.animation.LinearInterpolator;
  * Created by loubinfeng on 2017/4/1.
  */
 
-public class GeneralCircleMaterialProgressBar extends View implements View.OnClickListener{
+public class GeneralCircleMaterialProgressBar extends View {
 
     //绘制的画笔
     private Paint mPaint;
@@ -57,15 +58,16 @@ public class GeneralCircleMaterialProgressBar extends View implements View.OnCli
         mPaint.setColor(mColor);
         mFullPath = new Path();
         mDrawPath = new Path();
-        setOnClickListener(this);
     }
 
     /**
      * 设置颜色
+     *
      * @param color
      */
-    public void setColor(int color){
+    public void setColor(int color) {
         mColor = color;
+        mPaint.setColor(mColor);
     }
 
     @Override
@@ -75,12 +77,12 @@ public class GeneralCircleMaterialProgressBar extends View implements View.OnCli
         int widthSize = MeasureSpec.getSize(widthMeasureSpec);
         int heightMode = MeasureSpec.getMode(heightMeasureSpec);
         int heightSize = MeasureSpec.getSize(heightMeasureSpec);
-        if (widthMode == MeasureSpec.EXACTLY && heightMode == MeasureSpec.EXACTLY){
-            int newWidth = Math.min(widthSize,heightSize);
-            setMeasuredDimension(newWidth,newWidth);
-        }else{
-            int newWidth = dp2Px(getContext(),50);
-            setMeasuredDimension(newWidth,newWidth);
+        if (widthMode == MeasureSpec.EXACTLY && heightMode == MeasureSpec.EXACTLY) {
+            int newWidth = Math.min(widthSize, heightSize);
+            setMeasuredDimension(newWidth, newWidth);
+        } else {
+            int newWidth = dp2Px(getContext(), 50);
+            setMeasuredDimension(newWidth, newWidth);
         }
     }
 
@@ -90,20 +92,22 @@ public class GeneralCircleMaterialProgressBar extends View implements View.OnCli
         int pointX = w / 2;
         int pointY = h / 2;
         int r = w / 2 - 10;
-        mFullPath.addCircle(pointX,pointY,r, Path.Direction.CW);
-        mMeasure = new PathMeasure(mFullPath,true);
+        mFullPath.addCircle(pointX, pointY, r, Path.Direction.CW);
+        mMeasure = new PathMeasure(mFullPath, true);
         mFullLength = mMeasure.getLength();
-        mDrawLength = mFullLength / 10;
+        mDrawLength = mFullLength / 4;
         mStartD = 0;
         mStopD = mStartD + mDrawLength;
-        mValueAnimator = ValueAnimator.ofFloat(0,1);
-        mValueAnimator.setDuration(10000);
+        mValueAnimator = ValueAnimator.ofFloat(0, 1);
+        mValueAnimator.setDuration(1000);
+        mValueAnimator.setRepeatCount(ValueAnimator.INFINITE);
+        mValueAnimator.setInterpolator(new LinearInterpolator());
         mValueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
             public void onAnimationUpdate(ValueAnimator valueAnimator) {
-                float value = (Float)valueAnimator.getAnimatedValue();
-                mStartD = (mStartD +  value * mFullLength)%mFullLength;
-                mStopD = (mStopD + value * mFullLength)%mFullLength;
+                float value = (Float) valueAnimator.getAnimatedValue();
+                mStartD = value * mFullLength % mFullLength;
+                mStopD = (value * mFullLength + mDrawLength) % mFullLength;
                 invalidate();
             }
         });
@@ -113,19 +117,43 @@ public class GeneralCircleMaterialProgressBar extends View implements View.OnCli
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         mDrawPath.reset();
-        mDrawPath.lineTo(0,0);
-        mMeasure.getSegment(mStartD,mStopD,mDrawPath,true);
-        canvas.drawPath(mDrawPath,mPaint);
+        mDrawPath.lineTo(0, 0);
+        if (mStartD < mStopD) {//正常情况
+            mMeasure.getSegment(mStartD, mStopD, mDrawPath, true);
+            canvas.drawPath(mDrawPath, mPaint);
+        } else {//当mStopD超过0点，mStartD还没超过0点
+            mMeasure.getSegment(mStartD,mFullLength,mDrawPath,true);
+            canvas.drawPath(mDrawPath,mPaint);
+            mMeasure.getSegment(0,mStopD,mDrawPath,true);
+            canvas.drawPath(mDrawPath,mPaint);
+        }
     }
 
+    @Override
+    protected void onWindowVisibilityChanged(int visibility) {
+        super.onWindowVisibilityChanged(visibility);
+        if (visibility == View.VISIBLE){
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    if (mValueAnimator != null)
+                        mValueAnimator.start();
+                }
+            },200);
+        }
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        if (mValueAnimator != null){
+            mValueAnimator.cancel();
+            mValueAnimator = null;
+        }
+    }
 
     private int dp2Px(Context context, float dp) {
         final float scale = context.getResources().getDisplayMetrics().density;
         return (int) (dp * scale + 0.5f);
-    }
-
-    @Override
-    public void onClick(View view) {
-        mValueAnimator.start();
     }
 }
