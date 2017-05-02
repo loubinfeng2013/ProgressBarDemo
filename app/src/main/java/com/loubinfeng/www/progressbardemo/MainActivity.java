@@ -13,7 +13,11 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
     }
 
-    public void GeneralMaterialProgressBar(View view){
-        startActivity(new Intent(this,GeneralCircleProgressBarActivity.class));
+    public void GeneralMaterialProgressBar(View view) {
+        startActivity(new Intent(this, GeneralCircleProgressBarActivity.class));
+    }
+
+    public void LineProgressBar(View view) {
+        startActivity(new Intent(this, LineProgressBarActivity.class));
     }
 }

@@ -9,11 +9,17 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-    <Button
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:text="GeneralMaterialProgressBar"
-        android:onClick="GeneralMaterialProgressBar"/>
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:onClick="GeneralMaterialProgressBar"
+            android:text="General Material ProgressBar" />
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:onClick="LineProgressBar"
+            android:text="Line ProgressBar" />
 
     </LinearLayout>
 </ScrollView>

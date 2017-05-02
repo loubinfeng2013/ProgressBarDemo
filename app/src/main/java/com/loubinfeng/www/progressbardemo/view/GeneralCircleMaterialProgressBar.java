@@ -95,7 +95,7 @@ public class GeneralCircleMaterialProgressBar extends View {
         mFullPath.addCircle(pointX, pointY, r, Path.Direction.CW);
         mMeasure = new PathMeasure(mFullPath, true);
         mFullLength = mMeasure.getLength();
-        mDrawLength = mFullLength / 4;
+        mDrawLength = mFullLength / 3;
         mStartD = 0;
         mStopD = mStartD + mDrawLength;
         mValueAnimator = ValueAnimator.ofFloat(0, 1);
